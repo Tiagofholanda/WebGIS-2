@@ -24,20 +24,28 @@ def main():
 
     # Carregar ou criar dados geoespaciais
     data = gpd.GeoDataFrame({
-        'city': ["New York", "Los Angeles", "Chicago"],
-        'latitude': [40.7128, 34.0522, 41.8781],
-        'longitude': [-74.0060, -118.2437, -87.6298]
+        'city': ["New York", "Los Angeles", "Chicago", "Miami"],
+        'latitude': [40.7128, 34.0522, 41.8781, 25.7617],
+        'longitude': [-74.0060, -118.2437, -87.6298, -80.1918]
     }, geometry=gpd.points_from_xy(data['longitude'], data['latitude']))
 
-    # Criar um mapa com a localização centralizada
-    m = folium.Map(location=[39.8283, -98.5795], zoom_start=4)
+    # Interface para seleção de filtro
+    city_to_filter = st.selectbox('Escolha uma cidade para mostrar no mapa:', data['city'].unique())
 
-    # Adicionar pontos ao mapa
-    for _, row in data.iterrows():
+    # Filtrar dados
+    filtered_data = data[data['city'] == city_to_filter]
+
+    # Criar um mapa com a localização centralizada na cidade escolhida
+    if not filtered_data.empty:
+        first_point = filtered_data.iloc[0]
+        m = folium.Map(location=[first_point['latitude'], first_point['longitude']], zoom_start=10)
+        # Adicionar ponto ao mapa
         folium.Marker(
-            location=[row['latitude'], row['longitude']],
-            popup=row['city']
+            location=[first_point['latitude'], first_point['longitude']],
+            popup=first_point['city']
         ).add_to(m)
+    else:
+        m = folium.Map(location=[39.8283, -98.5795], zoom_start=4)
 
     # Renderizar o mapa no Streamlit
     st_folium(m, width=725, height=500)
